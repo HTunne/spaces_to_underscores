@@ -1,7 +1,7 @@
+use clap::Parser;
 use std::error::Error;
 use std::fs;
 use std::io;
-use std::path::Path;
 use std::path::PathBuf;
 
 fn start_dialog(cwd: &str, file_count: usize) {
@@ -22,7 +22,7 @@ fn user_confirm() -> io::Result<bool> {
     Ok(!ops.trim().eq_ignore_ascii_case("N"))
 }
 
-fn recurse_dirs(dir: &Path, vec: &mut Vec<PathBuf>) -> io::Result<()> {
+fn recurse_dirs(dir: &PathBuf, vec: &mut Vec<PathBuf>) -> io::Result<()> {
     for entry in fs::read_dir(dir)? {
         let entry = entry?;
         let path = entry.path();
@@ -36,13 +36,30 @@ fn recurse_dirs(dir: &Path, vec: &mut Vec<PathBuf>) -> io::Result<()> {
     Ok(())
 }
 
+#[derive(Parser, Default, Debug)]
+#[clap(author = "HTunne", version, about)]
+/// Recursively replace spaces with underscores in file and directory names.
+/// Optionally supply a different 'from' char and 'to' char.
+struct Arguments {
+    /// Path to begin renaming
+    path: PathBuf,
+    #[clap(default_value = " ", short, long)]
+    /// From char
+    from_char: String,
+    #[clap(default_value = "_", short, long)]
+    /// To char
+    to_char: String,
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
+    let args = Arguments::parse();
+    println!("{:?}", args);
+
     let mut vec: Vec<PathBuf> = Vec::new();
-    let initial_path = Path::new("test");
-    recurse_dirs(initial_path, &mut vec)?;
+    recurse_dirs(&args.path, &mut vec)?;
 
     // TODO: dialog for 0 files
-    start_dialog(initial_path.to_str().unwrap(), vec.len());
+    start_dialog(args.path.to_str().unwrap(), vec.len());
 
     loop {
         match user_confirm() {
@@ -53,10 +70,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    println!("continue");
-
     let mut i = 1;
-    println!("Begining...");
+    println!("Beginning...");
     for from_path in vec {
         let mut to_path = from_path.clone();
         let new_name = to_path
@@ -64,7 +79,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .unwrap()
             .to_str()
             .unwrap()
-            .replace(" ", "_");
+            .replace(&args.from_char, &args.to_char);
         to_path.pop();
         to_path.push(new_name);
         println!(
