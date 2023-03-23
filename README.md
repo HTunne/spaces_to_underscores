@@ -1,4 +1,4 @@
-# spaces_to_underscores
+# Spaces to Underscores!
 Recursively replace spaces with underscores in file and directory names.
 Optionally supply a different 'from' char and 'to' char
 
@@ -12,3 +12,6 @@ Options:
   -t, --to-char <TO_CHAR>      To char [default: _]
   -h, --help                   Print help
   -V, --version                Print version
+
+## Inspiration
+https://github.com/ArthurGareginyan/space_to_underscore
